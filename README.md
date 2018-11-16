@@ -28,6 +28,10 @@ Set DPI_SDK to the ixEngine SDK path<br>
                                       By default tries the first interface if none given<br>
         --csv <file>                  Set output CSV file path (default: ./output.csv)<br>
 
+### Example:
+        sudo LD_LIBRARY_PATH=/home/jgress/src/qosmos/SDK-5.3.0-22-x86_64-LSB-SMP-NG/lib:\
+        /home/jgress/src/DeviceID/lib/ ./pcap_device_identifier --dpi_thread 6 --live eno2 \
+        | tee ./LogRhythmDevices.csv<br>
 
 ************************************************************************
 ## Environment variables
