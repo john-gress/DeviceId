@@ -1,1 +1,6 @@
 lib
+*.o
+*.d
+*.swp
+pcap_device_identifier
+src/bin/

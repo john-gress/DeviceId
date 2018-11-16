@@ -25,8 +25,9 @@
 
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
 
-static void output_identification(FILE *out, const char *value[]);
+static void output_identification(FILE *out, const char *value[], struct device_ip *device_ip_ptr, unsigned int score);
 static void metadata_to_string(char *buf, unsigned int size, const char *value[]);
+static void output_header_line(FILE *out);
 
 static const int metadata[QMDEV_MAX_METADATA_ID] = {
     [QMDEV_NIC_VENDOR] = QMDEV_NIC_VENDOR,
@@ -38,6 +39,7 @@ static const int metadata[QMDEV_MAX_METADATA_ID] = {
     [QMDEV_TYPE]       = QMDEV_TYPE
 };
 
+/*
 static const char *metadata_string[QMDEV_MAX_METADATA_ID] = {
     [QMDEV_NIC_VENDOR] = "nic_vendor",
     [QMDEV_VENDOR]     = "device_vendor",
@@ -47,6 +49,7 @@ static const char *metadata_string[QMDEV_MAX_METADATA_ID] = {
     [QMDEV_OS_VENDOR]  = "os_vendor",
     [QMDEV_TYPE]       = "device_type"
 };
+*/
 
 /*
  * Device identification thread function
@@ -66,6 +69,7 @@ void *device_identification_thread_main(void *arg)
         fflush(stdout);
     }
 
+    output_header_line(stdout);
     while (1) {
         /* Get data pointer from FIFO. */
         struct qmdev_fingerprint_group *fp_group = thread_fifo_pop(&device_queue);
@@ -96,7 +100,7 @@ void device_identification_process_fingerprint(struct qmdev_fingerprint_group *f
     unsigned int flags;
     struct qmdev_result *result;
     struct qmdev_device_context *device_context = NULL;
-    struct device_ip *device_ip = NULL;
+    struct device_ip *device_ip_ptr = NULL;
 
     if (fp_group == NULL) {
         return ;
@@ -107,7 +111,7 @@ void device_identification_process_fingerprint(struct qmdev_fingerprint_group *f
         fprintf(stderr, "ERROR: can't get device context (%d)\n", ret);
         goto fpg_destroy;
     }
-    ret = qmdev_device_context_user_handle_get(device_context, (void **) &device_ip);
+    ret = qmdev_device_context_user_handle_get(device_context, (void **) &device_ip_ptr);
     if (ret != QMDEV_SUCCESS) {
         fprintf(stderr, "ERROR: can't get user handle (%d)\n", ret);
         goto fpg_destroy;
@@ -116,7 +120,7 @@ void device_identification_process_fingerprint(struct qmdev_fingerprint_group *f
     /* A device could have been identified while some fingerprint groups are still in the queue.
      * If this occurs, don't process its fingerprint.
      */
-    if (pdi_device_is_identified(device_ip)) {
+    if (pdi_device_is_identified(device_ip_ptr)) {
         goto fpg_destroy;
     }
 
@@ -130,7 +134,7 @@ void device_identification_process_fingerprint(struct qmdev_fingerprint_group *f
     struct qmdev_result_device *device = NULL;
     unsigned int score;
     unsigned int dev_flags;
-    uint32_t ip = pdi_device_get_ip_addr(device_ip);
+    uint32_t ip = pdi_device_get_ip_addr(device_ip_ptr);
 
     while (qmdev_result_device_get_next(result, &device, &score, &dev_flags) == QMDEV_SUCCESS) {
         if (device == NULL) {
@@ -171,10 +175,10 @@ void device_identification_process_fingerprint(struct qmdev_fingerprint_group *f
          * + the score is above a certain threshold
          * + AND the number of fingerprints successfully matched is above a certain number. */
         if (score >= DEVICE_DEFAULT_SCORE && fp_matched >= FINGERPRINT_MATCHED_COUNT) {
-            pdi_device_set_identified(device_ip, score, dev_flags, buffer);
+            pdi_device_set_identified(device_ip_ptr, score, dev_flags, buffer);
             num_dev_ided++;
 
-            output_identification(stdout, metadata_value);
+            output_identification(stdout, metadata_value, device_ip_ptr, score);
         }
 
         DBG_PRINTF_1("[device thread] " IP4_FMT " %s: score %u (osv:os:osver:v:m:t:nic) - %s\n",
@@ -195,14 +199,24 @@ fpg_destroy:
     }
 }
 
-static void output_identification(FILE *out, const char *value[])
+static void output_header_line(FILE *out) {
+   fprintf(out, "Device ID\tIP Address\tMAC Address\tDevice Vendor\tDevice Model\tDevice Type\tOS Vendor\tOS Name\tOS Version\tNIC Vendor\tscore\n");
+}
+
+static void output_identification(FILE *out, const char *value[], struct device_ip *device_ip_ptr, unsigned int score)
 {
     int i;
+    fprintf(out, "d(%d)\t" IP4_FMT "\t" MAC_FMT, num_dev_ided, IP4_FMT_ARGS(device_ip_ptr->ip_addr), 
+       MAC_FMT_ARGS(device_ip_ptr->mac_addr));
+    //   snprintf(device_entry->mac_addr, 32, MAC_FMT, MAC_FMT_ARGS(*client_mac));
     for(i = 0; i < QMDEV_MAX_METADATA_ID; i++) {
-        if (value[i]) {
-            fprintf(out, "d(%d)/%s=%s\n", num_dev_ided, metadata_string[i], value[i]);
-        }
+       if (value[i]) {
+          fprintf(out, "\t%s", value[i]);
+       } else {
+          fprintf(out, "\t-");
+       }
     }
+    fprintf(out, "\t%u\n", score);
 }
 
 static void metadata_to_string(char *buf, unsigned int size, const char *value[])

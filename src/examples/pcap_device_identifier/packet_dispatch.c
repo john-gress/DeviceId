@@ -48,7 +48,7 @@ static uint64_t packet_dropped;
 static uint64_t packet_filtered;
 
 static struct pdi_pkt *packet_filter_and_build(const struct pcap_pkthdr *phdr,
-       const u_char *pdata, int link_mode, int remove_llc, int link_mode_loop);
+       const u_char *pdata, int link_mode, int remove_llc, int link_mode_loop, int* vlan_tag);
 
 void reset_packet_counter(void)
 {
@@ -137,11 +137,16 @@ static int packet_act_on_device(device_ip_t *device)
  *
  * Upon exit *error is set to 1 if an error occurred otherwise 0.
  */
-static device_ip_t *packet_check_new_device(struct pdi_pkt *packet, int link_mode, int *error)
+static device_ip_t *packet_check_new_device(struct pdi_pkt *packet, int link_mode, int vlan_tag, int *error)
 {
     uint8_t *frame = packet->data;
     device_ip_t *device_entry = NULL;
     int new_device = 0;
+
+    int vlan_offset = 0;
+    if (vlan_tag) {
+       vlan_offset = 4;
+    }
 
     /* We have an IPv4 frame.
      * Create device if it does not exist.
@@ -154,7 +159,7 @@ static device_ip_t *packet_check_new_device(struct pdi_pkt *packet, int link_mod
 
     if (link_mode == QMDPI_PROTO_ETH) {
         client_mac = &frame[6];
-        addr       = &frame[14+12];
+        addr       = &frame[14+12+vlan_offset];
     } else if (link_mode == QMDPI_PROTO_IP) {
         const uint8_t dft_mac[6] = { 0, 0, 0, 0, 0, 0 };
         client_mac = (uint8_t *) &dft_mac[0]; /* here for debug purposes. */
@@ -202,14 +207,18 @@ int packet_dispatch_loop(pcap_t *pcap, void *arg)
     int link_mode = QMDPI_PROTO_ETH;
     int remove_llc = 0;
     int link_mode_loop = 0;
+    int vlan_tag = 0;
     struct pcap_pkthdr *phdr;
     const u_char *pdata;
     unsigned int num_workers = *((unsigned int *) arg);
 
     while (pdi_loop && pcap_next_ex(pcap, &phdr, &pdata) >= 0) {
         ++packet_number;
+        if (packet_number % 10000000 == 1) {
+           fprintf(stderr,"packet_number: %lu\n", packet_number);
+        }
         packet_get_link_mode(pcap, &link_mode, &remove_llc, &link_mode_loop);
-        packet = packet_filter_and_build(phdr, pdata, link_mode, remove_llc, link_mode_loop);
+        packet = packet_filter_and_build(phdr, pdata, link_mode, remove_llc, link_mode_loop, &vlan_tag);
         if (packet == NULL) {
             continue;
         }
@@ -219,7 +228,7 @@ int packet_dispatch_loop(pcap_t *pcap, void *arg)
 
         /* TODO: put device detection before building the packet. */
         int error = 0;
-        struct device_ip *device = packet_check_new_device(packet, link_mode, &error);
+        struct device_ip *device = packet_check_new_device(packet, link_mode, vlan_tag, &error);
 
         /* Filter packet depending on device. If identified, drop it. */
         int drop = packet_act_on_device(device);
@@ -236,6 +245,8 @@ int packet_dispatch_loop(pcap_t *pcap, void *arg)
         uint32_t hashkey = qmdpi_packet_hashkey_get(pdata, phdr->caplen, link_mode);
         packet_queue(&threads[hashkey % num_workers], packet);
     }
+    printf("Exit packet_dispatch_loop: %lu, packet_filtered: %lu, packet_dropped: %lu\n", 
+       packet_number, packet_filtered, packet_dropped);
 
     return 0;
 }
@@ -245,13 +256,19 @@ int packet_dispatch_loop(pcap_t *pcap, void *arg)
  * 1 if the packet should be dropped
  * 0 otherwise.
  */
-static inline int packet_filter(uint8_t *frame)
+static inline int packet_filter(uint8_t *frame, int* vlan_tag)
 {
     int drop = 1;
-    uint16_t ethertype;
+    uint16_t ethertype = 0;
 
     /* We suppose we have an ethernet with an EtherType field. */
     ethertype = (frame[12] << 8) + frame[13];
+
+    /* Handle VLAN tagging */
+    if (ethertype == 0x8100) {
+       *vlan_tag = 1;
+       ethertype = (frame[16] << 8) + frame[17];
+    }
 
     if (ethertype == 0x0800) {
         drop = 0;
@@ -269,10 +286,12 @@ packet_filter_and_build(const struct pcap_pkthdr *phdr,
                          const u_char *pdata,
                          int link_mode,
                          int remove_llc,
-                         int link_mode_loop)
+                         int link_mode_loop,
+                         int* vlan_tag)
 {
     struct pdi_pkt *packet;
     uint32_t caplen;
+    *vlan_tag = 0;
 
     if (link_mode_loop && phdr->caplen >= LOOP_HEADER_SZ) {
         uint32_t pf_mode = *(uint32_t *)(pdata);
@@ -298,7 +317,7 @@ packet_filter_and_build(const struct pcap_pkthdr *phdr,
         caplen = phdr->caplen;
     }
 
-    if (link_mode == QMDPI_PROTO_ETH && packet_filter((uint8_t *) pdata)) {
+    if (packet_filter((uint8_t *) pdata, vlan_tag)) {
         ++packet_filtered;
         return NULL;
     }

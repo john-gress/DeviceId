@@ -19,6 +19,21 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <pthread.h>
+#include <sys/queue.h>
+
+struct device_ip {
+    SLIST_ENTRY(device_ip) next;
+    uint32_t               ip_addr;
+    uint8_t                mac_addr[6];
+    uint8_t                is_identified:1;
+    uint8_t                mac_sent:1;
+    unsigned int           score;
+    unsigned int           flags;
+    time_t                 detected_time;
+    char                   metadata[128];
+    struct qmdev_device_context *device_context;
+    pthread_rwlock_t       rwlock;//read-write lock on device_ip struct
+};
 
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
 

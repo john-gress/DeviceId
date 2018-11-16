@@ -23,7 +23,7 @@
 
 #define NUM_UNMATCHED_FP_PER_DEV_DEFAULT 1
 #define NUM_RESULTS_DEFAULT              5
-#define NUM_DEVICES_DEFAULT              1000
+#define NUM_DEVICES_DEFAULT              10000
 
 #define DEVICE_DEFAULT_SCORE       75
 #define FINGERPRINT_MATCHED_COUNT   5
