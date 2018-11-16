@@ -20,6 +20,7 @@ Set DPI_SDK to the ixEngine SDK path<br>
 ### Example:
         export DPI_SDK=/home/jgress/src/qosmos/SDK-5.3.0-22-x86_64-LSB-SMP-NG/
         make
+        make install
 
 ************************************************************************
 ## Usage:
