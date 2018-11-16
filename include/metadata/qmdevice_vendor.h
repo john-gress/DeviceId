@@ -1,0 +1,83 @@
+/*
+  This file is a part of Qosmos Device Identification library
+
+  Copyright Qosmos Tech 2000-2018 - All rights reserved
+
+  This computer program and all its components are protected by
+  authors' rights and copyright law and by international treaties.
+  Any representation, reproduction, distribution or modification
+  of this program or any portion of it is forbidden without
+  Qosmos explicit and written agreement and may result in severe
+  civil and criminal penalties, and will be prosecuted
+  to the maximum extent possible under the law.
+*/
+
+#ifndef __QMDEVICE_VENDOR_H__
+#define __QMDEVICE_VENDOR_H__
+
+enum  {
+    QMDEV_VENDOR_UNDEFINED = 0,
+    QMDEV_VENDOR_AASTRA = 1,
+    QMDEV_VENDOR_AIRTIES = 2,
+    QMDEV_VENDOR_3COM = 3,
+    QMDEV_VENDOR_ACER = 4,
+    QMDEV_VENDOR_ALCATEL = 5,
+    QMDEV_VENDOR_AMAZON = 6,
+    QMDEV_VENDOR_AMERICAN_POWER_CONVERSION = 7,
+    QMDEV_VENDOR_APPLE = 8,
+    QMDEV_VENDOR_ARUBA = 9,
+    QMDEV_VENDOR_ASUS = 10,
+    QMDEV_VENDOR_AXIS_COMMUNICATION = 11,
+    QMDEV_VENDOR_AVAYA = 12,
+    QMDEV_VENDOR_BELKIN = 13,
+    QMDEV_VENDOR_BLACKBERRY_LIMITED = 14,
+    QMDEV_VENDOR_BQ = 15,
+    QMDEV_VENDOR_CISCO = 16,
+    QMDEV_VENDOR_CANONICAL = 17,
+    QMDEV_VENDOR_D_LINK = 18,
+    QMDEV_VENDOR_DELL = 19,
+    QMDEV_VENDOR_ENTERASYS_NETWORKS = 20,
+    QMDEV_VENDOR_FUJIXEROX = 21,
+    QMDEV_VENDOR_GOOGLE = 22,
+    QMDEV_VENDOR_HP = 23,
+    QMDEV_VENDOR_HTC = 24,
+    QMDEV_VENDOR_HUAWEI = 25,
+    QMDEV_VENDOR_KONICA_MINOLTA = 26,
+    QMDEV_VENDOR_KYOCERA = 27,
+    QMDEV_VENDOR_LENOVO = 28,
+    QMDEV_VENDOR_LEXMARK = 29,
+    QMDEV_VENDOR_LIFESIZE = 30,
+    QMDEV_VENDOR_LINKSYS = 31,
+    QMDEV_VENDOR_LG = 32,
+    QMDEV_VENDOR_MICROMAX = 33,
+    QMDEV_VENDOR_MICROSOFT = 34,
+    QMDEV_VENDOR_MIKROTIK = 35,
+    QMDEV_VENDOR_MOTOROLA = 36,
+    QMDEV_VENDOR_NETGEAR = 37,
+    QMDEV_VENDOR_NINTENDO = 38,
+    QMDEV_VENDOR_NOKIA = 39,
+    QMDEV_VENDOR_NORTEL = 40,
+    QMDEV_VENDOR_OPPO = 41,
+    QMDEV_VENDOR_PANASONIC = 42,
+    QMDEV_VENDOR_POLYCOM = 43,
+    QMDEV_VENDOR_RASPBERRY_PI_FOUNDATION = 44,
+    QMDEV_VENDOR_RED_HAT = 45,
+    QMDEV_VENDOR_RUCKUS = 46,
+    QMDEV_VENDOR_SAMSUNG = 47,
+    QMDEV_VENDOR_SONY = 48,
+    QMDEV_VENDOR_SONY_ERICSSON = 49,
+    QMDEV_VENDOR_TOSHIBA = 50,
+    QMDEV_VENDOR_TP_LINK = 51,
+    QMDEV_VENDOR_VAIO = 52,
+    QMDEV_VENDOR_VERIZON = 53,
+    QMDEV_VENDOR_VIVO = 54,
+    QMDEV_VENDOR_VMWARE = 55,
+    QMDEV_VENDOR_VODAFONE = 56,
+    QMDEV_VENDOR_WIKO = 57,
+    QMDEV_VENDOR_XEROX = 58,
+    QMDEV_VENDOR_XIAOMI = 59,
+    QMDEV_VENDOR_YMAX = 60,
+    QMDEV_VENDOR_ZTE = 61,
+};
+
+#endif
