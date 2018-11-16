@@ -44,7 +44,7 @@ static inline void dpi_handle_tcp(struct pdi_thread               *ctx,
                 DBG_PRINTF_2("[dpi thread %d] packet %" PRIu64 " Window size: %u\n",
                              ctx->thread_id+1, ctx->pkt_nb, (unsigned) ntohs(tcp->window));
 
-                if (tcp->doff) {
+                if (tcp->doff > 5) {
                     /* TCP options present. Add them. */
                     dpi_engine_add_fingerprint(ctx, device_entry, fp_group_p, QMDEV_DEEP_COPY,
                             Q_PROTO_TCP, Q_TCP_HEADER_OPTIONS, 0,

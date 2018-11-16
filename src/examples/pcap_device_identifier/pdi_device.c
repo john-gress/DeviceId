@@ -29,19 +29,6 @@
 
 #include "pdi_device.h"
 
-struct device_ip {
-    SLIST_ENTRY(device_ip) next;
-    uint32_t               ip_addr;
-    uint8_t                is_identified:1;
-    uint8_t                mac_sent:1;
-    unsigned int           score;
-    unsigned int           flags;
-    time_t                 detected_time;
-    char                   metadata[128];
-    struct qmdev_device_context *device_context;
-    pthread_rwlock_t       rwlock;//read-write lock on device_ip struct
-};
-
 #define DEVICE_IP_LOOKUP_HASHSZ (1 << 10)
 static SLIST_HEAD (,device_ip) device_ip_hash[DEVICE_IP_LOOKUP_HASHSZ];
 

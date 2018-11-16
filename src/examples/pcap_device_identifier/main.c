@@ -307,6 +307,7 @@ static pcap_t *pcap_interface_open(const char *net_if)
 
     /* open interface */
     if (net_if) {
+        fprintf(stdout, "pcap_open_live: %s\n", net_if);
         pcap = pcap_open_live(net_if, 65535, 1, 0, errbuf);
 
     } else {
@@ -377,5 +378,6 @@ static char *dev_get_config(struct opt *opt)
                                NUM_UNMATCHED_FP_PER_DEV_DEFAULT, NUM_DEVICES_DEFAULT, NUM_RESULTS_DEFAULT);
     }
 
+    printf("device ID library config: %s\n", buffer);
     return buffer;
 }
